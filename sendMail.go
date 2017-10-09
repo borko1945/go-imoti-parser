@@ -9,7 +9,7 @@ func endl(str string) string {
 	return str + "\r\n";
 }
 
-func sendMail(add AdvertDetails) {
+func sendMail(add *AdvertDetails) {
 	log.Println("Sending mail");
 
 	from := Cfg().Email.From;

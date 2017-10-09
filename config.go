@@ -16,6 +16,7 @@ type Config struct {
 		Pass string `json:"pass"`
 	} `json:"email"`
 	PagesToParse int `json:"pagesToParse"`
+	ProcessAfterParse bool `json:"processAfterParse"`
 	URL string `json:"url"`
 }
 

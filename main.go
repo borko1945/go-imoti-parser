@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"net/http"
 	"fmt"
-	"sync"
 	"strconv"
 
 	"github.com/PuerkitoBio/goquery"
@@ -43,9 +42,7 @@ func createDoc(url string ) (*goquery.Document, error){
 	return goquery.NewDocumentFromReader(utfBody)
 }
 
-func processDetailsLink(wg *sync.WaitGroup, url string) (details AdvertDetails, res bool) {
-	defer wg.Done();
-
+func processDetailsLink(url string) (details AdvertDetails, res bool) {
 	fmt.Printf("Processing: %s\n", url)
 	doc, err := createDoc(url);
 	if err != nil {
@@ -73,15 +70,18 @@ func processDetailsLink(wg *sync.WaitGroup, url string) (details AdvertDetails, 
 
 func processParsedAdverts(db *Db, adverts []AdvertDetails) {
 	for _, element := range adverts {
-		if (len(db.FindMatch(&element)) == 0) {
-			db.Store(&element);
-			sendMail(element)
-		} 
+		processParsedAdvert(db, &element);
 	}
 }
 
+func processParsedAdvert(db *Db, advert *AdvertDetails) {
+	if (len(db.FindMatch(advert)) == 0) {
+		db.Store(advert);
+		sendMail(advert)
+	} 
+}
+
 func main() {
-	var wg sync.WaitGroup
 	var adsList []AdvertDetails;
 
 	db := New("./imotbg.db");
@@ -101,20 +101,21 @@ func main() {
 			linkURL, exists := s.Attr("href")
 			if (exists) {
 				detailsLink :="https:"+linkURL;
-				
-				wg.Add(1)
-				
-				addDetails, valid := processDetailsLink(&wg, detailsLink);
+
+				addDetails, valid := processDetailsLink(detailsLink);
 				if (valid) {
-					adsList = append(adsList, addDetails);
+					if (Cfg().ProcessAfterParse) {
+						processParsedAdvert(&db, &addDetails)
+					} else {
+						adsList = append(adsList, addDetails);
+					}
 				}
 			}
 		})
 	}
 
-	wg.Wait();
-
-	log.Println("Processed: " + strconv.Itoa(len(adsList)))
-
-	processParsedAdverts(&db, adsList);
+	if (!Cfg().ProcessAfterParse){
+		log.Println("Processed: " + strconv.Itoa(len(adsList)))
+		processParsedAdverts(&db, adsList);
+	}
 }
