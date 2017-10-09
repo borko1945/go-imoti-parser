@@ -33,6 +33,7 @@ func sendMail(add *AdvertDetails) {
 
 	message := ""
 	message += "Subject: " + "Imotbg: Цена:" + add.price + " . " + add.sizeInSquareMtr + " . " + add.location + " . " + add.roomsCount + "\r\n"
+	message += "\r\n"
 	message += endl(add.url);
 	message += endl(add.name);
 	message += endl("Цена: " + add.price);
