@@ -12,19 +12,27 @@ import (
 	"github.com/djimenez/iconv-go"
 )
 
+var client *http.Client;
+
+
+func getClient() *http.Client {
+	if (client == nil) {
+		var tr = &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+			DisableKeepAlives: true,
+		}
+		client = &http.Client{Transport: tr}
+	}
+
+	return client;
+}
+
 func createDoc(url string ) (*goquery.Document, error){
 	charset:= "windows-1251"
 	// Load the URL
-
-	var tr = &http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-		DisableKeepAlives: true,
-	}
-
-	var netClient = &http.Client{Transport: tr}
-	res, err := netClient.Get(url)
+	res, err := getClient().Get(url)
 	if err != nil {
 		log.Fatal(err.Error());
 		return nil, err
@@ -43,7 +51,7 @@ func createDoc(url string ) (*goquery.Document, error){
 	return goquery.NewDocumentFromReader(utfBody)
 }
 
-func processDetailsLink(url string) (details AdvertDetails, res bool) {
+func processDetailsLink(url string) (details *AdvertDetails, res bool) {
 	fmt.Printf("Processing: %s\n", url)
 	doc, err := createDoc(url);
 	if err != nil {
@@ -69,9 +77,9 @@ func processDetailsLink(url string) (details AdvertDetails, res bool) {
 	return details, true;
 }
 
-func processParsedAdverts(db *Db, adverts []AdvertDetails) {
+func processParsedAdverts(db *Db, adverts []*AdvertDetails) {
 	for _, element := range adverts {
-		processParsedAdvert(db, &element);
+		processParsedAdvert(db, element);
 	}
 }
 
@@ -87,7 +95,7 @@ func main() {
 		log.Println(http.ListenAndServe("localhost:8080", nil))
 	}()
 
-	var adsList []AdvertDetails;
+	var adsList []*AdvertDetails;
 
 	db := New("./imotbg.db");
 	defer db.Close();
@@ -110,7 +118,7 @@ func main() {
 				addDetails, valid := processDetailsLink(detailsLink);
 				if (valid) {
 					if (Cfg().ProcessAfterParse) {
-						processParsedAdvert(&db, &addDetails)
+						processParsedAdvert(&db, addDetails)
 					} else {
 						adsList = append(adsList, addDetails);
 					}
