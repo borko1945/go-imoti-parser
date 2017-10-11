@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"fmt"
 	"strconv"
+	_ "net/http/pprof"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/djimenez/iconv-go"
@@ -77,11 +78,15 @@ func processParsedAdverts(db *Db, adverts []AdvertDetails) {
 func processParsedAdvert(db *Db, advert *AdvertDetails) {
 	if (len(db.FindMatch(advert)) == 0) {
 		db.Store(advert);
-		sendMail(advert)
+		// sendMail(advert)
 	} 
 }
 
 func main() {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:8080", nil))
+	}()
+
 	var adsList []AdvertDetails;
 
 	db := New("./imotbg.db");
