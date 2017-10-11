@@ -77,8 +77,8 @@ func processParsedAdverts(db *Db, adverts []AdvertDetails) {
 
 func processParsedAdvert(db *Db, advert *AdvertDetails) {
 	if (len(db.FindMatch(advert)) == 0) {
-		db.Store(advert);
-		// sendMail(advert)
+		// db.Store(advert);
+		sendMail(advert)
 	} 
 }
 
