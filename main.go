@@ -58,6 +58,7 @@ func processDetailsLink(url string) (details *AdvertDetails, res bool) {
 		return
 	}
 
+	details = new(AdvertDetails);
 	par := newDetailsParser(doc);
 
 	details.name = par.getName();

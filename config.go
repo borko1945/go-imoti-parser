@@ -35,13 +35,13 @@ func Load(file string) *Config {
 	}
 
 	if (len(file) == 0) {
-			file = "./config.json"
+			file = "config.json"
 	}
 
 	configFile, err := os.Open(file)
 	defer configFile.Close()
 	if err != nil {
-			log.Println(err.Error())
+			panic(err.Error())
 	}
 
 	jsonParser := json.NewDecoder(configFile)
