@@ -15,22 +15,7 @@ func sendMail(add *AdvertDetails) {
 	from := Cfg().Email.From;
 	pass := Cfg().Email.Pass;
 	to := Cfg().Email.To;
-
-	// Обява от: Частно лице
-	// Цена на кв.м: 732.14
-	// Тип апартамент: 3 - стаен
-	// Квадратура: 84 кв.м
-	// Година на строителство: 2007 г.
-	// Строителство: Тухла
-	// Етаж: 3-ти
-	// Брой етажи на сградата: 5
-	// Последен етаж: Не на последен етаж
-	// Отопление: Електричество
-	// Обзавеждане: Обзаведен
-	// Състояние на сградата: Завършена
-	// Преход: Без преход
-	// Особености: асансьор гараж паркинг саниран
-
+	
 	message := ""
 	message += "Subject: " + "Imotbg: Цена:" + add.price + " . " + add.sizeInSquareMtr + " . " + add.location + " . " + add.roomsCount + "\r\n"
 	message += "\r\n"
@@ -47,7 +32,6 @@ func sendMail(add *AdvertDetails) {
 	message += endl(add.message);
 
 	if (Cfg().Email.Simulate) {
-		log.Println(message)
 		return
 	}
 
