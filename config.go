@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"encoding/json"
 	"os"
 )
@@ -41,13 +40,14 @@ func Load(file string) *Config {
 	configFile, err := os.Open(file)
 	defer configFile.Close()
 	if err != nil {
-			panic(err.Error())
+		LogError("smtp error: " + err.Error())
+		return nil;
 	}
 
 	jsonParser := json.NewDecoder(configFile)
 	err = jsonParser.Decode(&config)
 	if err != nil {
-		log.Println(err.Error())
+		LogError(err.Error())
 		return nil;
 	}
 	

@@ -25,7 +25,10 @@ func (this Db) FindMatch(toMatch *AdvertDetails) []AdvertDetails {
 
 	rows, err := this.db.Query("SELECT * FROM imotbg where url=? AND name LIKE ? AND phone LIKE ?",
 		 toMatch.url, "%"+toMatch.name+"%", "%"+toMatch.phone+"%");
-	checkErr(err)
+		 if (err != nil) {
+			 LogError(err.Error())
+			 return result;
+		 }
 
 	for rows.Next() {
 		var advert AdvertDetails;
@@ -45,7 +48,10 @@ func (this Db) FindMatch(toMatch *AdvertDetails) []AdvertDetails {
 			&advert.message,
 			&advert.createdOn);
 
-		checkErr(err)
+		if (err != nil) {
+			LogError(err.Error())
+			continue;
+		}
 
 		result = append(result, advert);
 	}
@@ -60,7 +66,10 @@ func (this Db) findByUrl(url string) []AdvertDetails {
 	sqlStr := "SELECT * FROM imotbg where url='" + url+"'";
 	// logsql(sqlStr);
 	rows, err := this.db.Query(sqlStr);
-	checkErr(err)
+	if (err != nil) {
+		LogError(err.Error())
+		return result;
+	}
 
 	for rows.Next() {
 		var advert AdvertDetails;
@@ -80,7 +89,10 @@ func (this Db) findByUrl(url string) []AdvertDetails {
 			&advert.message,
 			&advert.createdOn);
 
-		checkErr(err)
+			if (err != nil) {
+				LogError(err.Error())
+				continue;
+			}
 
 		result = append(result, advert);
 	}
@@ -95,9 +107,12 @@ func (this Db) Store(advert *AdvertDetails) {
 	stmt, err := this.db.Prepare("INSERT INTO imotbg(name,location,url,price,price_per_sqmtr,rooms_count,size_in_square_mtr,flour_number,"+
 		"building_type,publish_date,phone,features,message) values(?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
-	checkErr(err)
+		if (err != nil) {
+			LogError(err.Error())
+			return
+		}
 
-	stmt.Exec(advert.name,
+	_, err = stmt.Exec(advert.name,
 		advert.location,
 		advert.url,
 		advert.price,
@@ -111,13 +126,9 @@ func (this Db) Store(advert *AdvertDetails) {
 		advert.features,
 		advert.message );
 
-		checkErr(err)
-}
-
-func checkErr(err error) {
-	if err != nil {
-			panic(err)
-	}
+		if (err != nil) {
+			LogError(err.Error())
+		}
 }
 
 func logsql(query string) {
@@ -134,11 +145,10 @@ func InitDB(filepath string) *sql.DB {
 	db, err := sql.Open("sqlite3", filepath)
 
 	// Here we check for any db errors then exit
-	checkErr(err)
+	if (err != nil) {
+		LogError(err.Error())
+	}
 
-	// If we don't get any errors but somehow still don't get a db connection
-	// we exit as well
-	checkErr(err)
 	return db
 }
 
@@ -165,5 +175,7 @@ func Migrate(db *sql.DB) {
 
 	_, err := db.Exec(sql)
 	// Exit if something goes wrong with our SQL statement above
-	checkErr(err)
+	if (nil != err) {
+		LogError(err.Error())
+	}
 }

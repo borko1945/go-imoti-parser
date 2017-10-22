@@ -4,8 +4,8 @@ import (
 	"log"
 	"crypto/tls"
 	"net/http"
-	"fmt"
 	"strconv"
+	"runtime/debug"
 	_ "net/http/pprof"
 
 	"github.com/PuerkitoBio/goquery"
@@ -34,7 +34,7 @@ func createDoc(url string ) (*goquery.Document, error){
 	// Load the URL
 	res, err := getClient().Get(url)
 	if err != nil {
-		log.Fatal(err.Error());
+		LogError(err.Error());
 		return nil, err
 	}
 	defer res.Body.Close()
@@ -43,7 +43,7 @@ func createDoc(url string ) (*goquery.Document, error){
 	// `charset` being one of the charsets known by the iconv package.
 	utfBody, err := iconv.NewReader(res.Body, charset, "utf-8")
 	if err != nil {
-		log.Fatal(err.Error());
+		LogError("Cannot Iconv url " + url + " - " + err.Error());
 		return nil, err
 	}
 
@@ -52,9 +52,10 @@ func createDoc(url string ) (*goquery.Document, error){
 }
 
 func processDetailsLink(url string) (details *AdvertDetails, res bool) {
-	fmt.Printf("Processing: %s\n", url)
+	log.Printf("Processing: %s\n", url)
 	doc, err := createDoc(url);
 	if err != nil {
+		LogError(err.Error());
 		return
 	}
 
@@ -86,7 +87,7 @@ func processParsedAdverts(db *Db, adverts []*AdvertDetails) {
 
 func processParsedAdvert(db *Db, advert *AdvertDetails) {
 	if (len(db.FindMatch(advert)) == 0) {
-		// db.Store(advert);
+		db.Store(advert);
 		sendMail(advert)
 	} 
 }
@@ -106,7 +107,8 @@ func main() {
 
 		doc, err := createDoc(pageURL);
 		if err != nil {
-			log.Fatal(err.Error());
+			LogError(err.Error());
+			continue;
 		}
 
 		// Find the review items
@@ -132,4 +134,9 @@ func main() {
 		log.Println("Processed: " + strconv.Itoa(len(adsList)))
 		processParsedAdverts(&db, adsList);
 	}
+}
+
+func LogError (err string) {
+	log.Println(err);
+	debug.PrintStack();
 }

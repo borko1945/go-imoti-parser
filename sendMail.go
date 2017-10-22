@@ -56,7 +56,7 @@ func sendMail(add *AdvertDetails) {
 		from, to, []byte(message))
 
 	if err != nil {
-		log.Printf("smtp error: %s", err)
+		LogError("smtp error: " + err.Error())
 		return
 	}
 }
